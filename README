@@ -1,0 +1,21 @@
+How does this work?
+There are three parts at play here:
+    - The wio terminal (controlling the car)
+    - A phone (acting as a camera)
+    - A server (acting as a middleman)
+
+The car will start to move forward and using the ultrasonic sensor it will detect if there is a "traffic sign" in front of it.
+If there is, it will stop and send a request to the server indicating that it has encountered a traffic sign. 
+The server will then send a request to the camera to take a picture of the traffic sign.
+The camera will then take a picture and send it back to the server.
+The server will extract the text from the image and send the appropriate command to the wio terminal.
+
+How to run this?
+    - Start the server by running `python server.py`
+    - For the camera, cd into the camera directory and run the following commands:
+        - `npm install`
+        - `npm run dev -- --host"
+    - Upload the crash_avoidance_car.ino file to the wio terminal
+
+    Once this is done, setup a hotspot on the computer running the server and connect the wio terminal and the camera to it.
+    For the camera, you need to go to the browser and type in the ip address of the computer running the server.

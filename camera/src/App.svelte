@@ -2,7 +2,7 @@
     let canvas: HTMLCanvasElement | null = null
     let video: HTMLVideoElement | null = null
     let ctx: CanvasRenderingContext2D | null = null
-    let hello = $state('')
+    let message = $state('')
 
     const interval = setInterval(() => {
         fetch('/photo').then((res) => {
@@ -49,12 +49,12 @@
     })
 
     async function takePhoto() {
-        hello = 'Taking photo...'
+        message = 'Taking photo...'
         if (ctx) {
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+            ctx.drawImage(video!, 0, 0, canvas!.width, canvas!.height)
 
             // Convert the canvas content to a data URL representing the image
-            const dataURL = canvas.toDataURL('image/png')
+            const dataURL = canvas!.toDataURL('image/png')
 
             // Extract the base64-encoded string from the data URL
             const base64String = dataURL.split(',')[1].trim()
@@ -70,7 +70,7 @@
 
             // Handle the server response as needed
             const result = await response.json()
-            hello = result.hello
+            message = result.message
         }
     }
 </script>
@@ -80,5 +80,5 @@
         <track kind="captions" />
     </video>
     <canvas bind:this={canvas} />
-    {hello}
+    {message}
 </div>

@@ -3,11 +3,11 @@ import cv2
 import asyncio
 from aiohttp import web
 import base64
-import time
 
 connected_client = set()
 
 
+# this function is used to get the action from the image (left or right)
 def get_action():
     image = cv2.imread("action.jpg")
 
@@ -21,9 +21,11 @@ def get_action():
         return words[0].strip()
 
 
+# this variable is used to check if the photo should be taken
 should_take_photo = False
 
 
+# this function is used to handle the object detection request
 async def handle_object_detection(request):
     global should_take_photo
     should_take_photo = True
@@ -33,6 +35,7 @@ async def handle_object_detection(request):
     return web.Response(text=action)
 
 
+# this function is used to handle the photo request
 async def handle_photo(request):
     global should_take_photo
     if should_take_photo:
@@ -42,6 +45,7 @@ async def handle_photo(request):
         return web.Response(status=200)
 
 
+# this function is used to handle the image upload request
 async def handle_upload(request):
     print("Handling upload")
     try:
@@ -83,4 +87,3 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main())
     loop.run_forever()
-
