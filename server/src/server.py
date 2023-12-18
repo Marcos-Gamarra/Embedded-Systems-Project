@@ -29,7 +29,7 @@ should_take_photo = False
 async def handle_object_detection(request):
     global should_take_photo
     should_take_photo = True
-    await asyncio.sleep(2)
+    await asyncio.sleep(3)
     action = get_action()
     print(f"Action: {action}")
     return web.Response(text=action)

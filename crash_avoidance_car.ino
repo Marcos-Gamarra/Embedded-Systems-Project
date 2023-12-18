@@ -1,6 +1,11 @@
+#include <rpcWiFi.h>
+#include <HTTPClient.h>
 #include "Ultrasonic.h"
 
-// Define the wheels pins
+const char* ssid = "hi mom";
+const char* password = "hellothere";
+
+// Pin configuration for the wheels
 #define br1 D3
 #define br2 D2
 #define bl1 D5
@@ -10,11 +15,16 @@
 #define tl1 D6
 #define tl2 D8
 
+#define INTERVAL_MS 100
+
+// Ultrasonic sensor configuration
 Ultrasonic ultrasonic(0);
 
 void setup() {
+  // Start serial communication
   Serial.begin(115200);
 
+  // Configure pins for the wheels as outputs
   pinMode(br1, OUTPUT);
   pinMode(br2, OUTPUT);
   pinMode(bl1, OUTPUT);
@@ -23,25 +33,92 @@ void setup() {
   pinMode(tr2, OUTPUT);
   pinMode(tl1, OUTPUT);
   pinMode(tl2, OUTPUT);
+
+  // Connect to WiFi
+  WiFi.begin(ssid, password);
+
+  // Wait for WiFi connection
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.println("Connecting...");
+  }
+
+  Serial.print("Connected to the WiFi network with IP: ");
+  Serial.println(WiFi.localIP());
+  delay(3000);
 }
 
 float distance;
-void loop() {
-  distance = ultrasonic.MeasureInCentimeters();
-  Serial.println(distance);
+String next_action = "";
 
-  if (distance <= 15) { 
-    stop();
-    delay(1000);
-    turnRight(); 
-    delay(2000);
-    stop();
-    delay(1000);
+void loop() {
+  // Measure distance using the ultrasonic sensor
+  distance = ultrasonic.MeasureInCentimeters();
+
+  if (distance < 15.0) {
+    // If an object is detected
+    stop(); // Stop the robot
+
+    // Create an HTTPClient object
+    HTTPClient http;
+    http.setTimeout(20000);
+
+    // Check if WiFi is connected
+    if (WiFi.status() == WL_CONNECTED) {
+      Serial.print("[HTTP] begin...\n");
+
+      // Configure target server and URL for the /object endpoint
+      String apiUrl = "http://192.168.12.1:8000/object";
+      http.begin(apiUrl.c_str());  // HTTP
+
+      Serial.print("[HTTP] GET...\n");
+
+      // Start connection and send HTTP header
+      int httpCode = http.GET();
+
+      // Check the HTTP response
+      if (httpCode > 0) {
+        Serial.printf("[HTTP] GET... code: %d\n", httpCode);
+
+        // Check if the server response is not empty
+        if (httpCode != 0) {
+          next_action = http.getString();
+          // Perform actions based on the server response
+          if (next_action == "left") {
+            Serial.println("Turning left");
+            turnLeft();
+            delay(2000);
+            stop();
+          } else if (next_action == "right") {
+            Serial.println("Turning right");
+            turnRight();
+            delay(2000);
+            stop();
+          } else {
+            turnRight();
+            delay(2000);
+            Serial.println("Invalid action");
+          }
+        }
+      } else {
+        // Print error if HTTP request fails
+        Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+      }
+
+      // End the HTTP connection
+      http.end();
+    }
   } else {
+    // If no object is detected, move forward
+    Serial.println("Moving forward");
     moveForward();
   }
-  delay(10);
+
+  // Delay before the next iteration
+  delay(INTERVAL_MS);
 }
+
+// Functions to control robot movement
 
 void moveForward() {
   bottomLeft(0);
@@ -51,6 +128,7 @@ void moveForward() {
 }
 
 void stop() {
+  // Stop all wheels
   digitalWrite(tl1, LOW);
   digitalWrite(tl2, LOW);
   digitalWrite(tr1, LOW);
@@ -62,6 +140,7 @@ void stop() {
 }
 
 void topLeft(int direction) {
+  // Control the top-left wheel based on the direction
   if (direction == 0) {
     digitalWrite(tl1, HIGH);
     digitalWrite(tl2, LOW);
@@ -72,6 +151,7 @@ void topLeft(int direction) {
 }
 
 void topRight(int direction) {
+  // Control the top-right wheel based on the direction
   if (direction == 0) {
     digitalWrite(tr1, HIGH);
     digitalWrite(tr2, LOW);
@@ -82,6 +162,7 @@ void topRight(int direction) {
 }
 
 void bottomLeft(int direction) {
+  // Control the bottom-left wheel based on the direction
   if (direction == 0) {
     digitalWrite(bl1, HIGH);
     digitalWrite(bl2, LOW);
@@ -92,6 +173,7 @@ void bottomLeft(int direction) {
 }
 
 void bottomRight(int direction) {
+  // Control the bottom-right wheel based on the direction
   if (direction == 0) {
     digitalWrite(br1, HIGH);
     digitalWrite(br2, LOW);
@@ -102,16 +184,27 @@ void bottomRight(int direction) {
 }
 
 void turnRight() {
-// Make the left wheels (top left and bottom left) to move forward 
+  // Turn the robot to the right
   digitalWrite(tl1, HIGH);
   digitalWrite(tl2, LOW);
   digitalWrite(bl1, HIGH);
   digitalWrite(bl2, LOW);
 
-// Make the right wheels (top right and bottom right) to stop
   digitalWrite(tr1, LOW);
-  digitalWrite(tr2, LOW);
+  digitalWrite(tr2, HIGH);
   digitalWrite(br1, LOW);
-  digitalWrite(br2, LOW);
+  digitalWrite(br2, HIGH);
 }
 
+void turnLeft() {
+  // Turn the robot to the left
+  digitalWrite(tl1, LOW);
+  digitalWrite(tl2, HIGH);
+  digitalWrite(bl1, LOW);
+  digitalWrite(bl2, HIGH);
+
+  digitalWrite(tr1, HIGH);
+  digitalWrite(tr2, LOW);
+  digitalWrite(br1, HIGH);
+  digitalWrite(br2, LOW);
+}

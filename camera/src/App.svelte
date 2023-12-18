@@ -60,17 +60,13 @@
             const base64String = dataURL.split(',')[1].trim()
 
             // Send the image data to the server using fetch
-            const response = await fetch('/upload', {
+            await fetch('/upload', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ image: base64String }),
             })
-
-            // Handle the server response as needed
-            const result = await response.json()
-            message = result.message
         }
     }
 </script>
