@@ -17,5 +17,6 @@ How to run this?
         - `npm run dev -- --host"
     - Upload the crash_avoidance_car.ino file to the wio terminal
 
-    Once this is done, setup a hotspot on the computer running the server and connect the wio terminal and the camera to it.
-    For the camera, you need to go to the browser and type in the ip address of the computer running the server.
+    Once this is done, setup a hotspot on the computer running the server with ssid "hi mom" and password "hellothere". The wio terminal
+    will connect to this network at boot time.
+    Open the browser with your phone and type in the ip address of the computer running the server in the navigation bar(use port 5173).
